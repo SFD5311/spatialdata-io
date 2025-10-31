@@ -19,7 +19,7 @@ from spatialdata._logging import logger
 from spatialdata.models import Image2DModel, Labels2DModel, PointsModel, TableModel
 from spatialdata.transformations.transformations import Affine, Identity
 
-from spatialdata_io._constants._constants import CosmxKeys, CosMxProteomicsKeys
+from spatialdata_io._constants._constants import CosmxKeys, CosmxProteomicsKeys
 from spatialdata_io._docs import inject_docs
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from dask.dataframe import DataFrame as DaskDataFrame
 
-__all__ = ["cosmx"]
+__all__ = ["cosmx_proteomics"]
 
 def find_files(directory: Path, pattern: str) -> Iterable[Path]:
     for dirpath_str, dirnames, filenames in os.walk(directory):
@@ -95,40 +95,40 @@ def cosmx_proteomics(
 
     # tries to infer dataset_id from the name of the counts file
     if dataset_id is None:
-        counts_files = [f for f in os.listdir(path) if str(f).endswith(CosmxKeys.COUNTS_SUFFIX)]
+        counts_files = [f for f in os.listdir(path) if str(f).endswith(CosmxProteomicsKeys.COUNTS_SUFFIX)]
         if len(counts_files) == 1:
-            found = re.match(rf"(.*)_{CosmxKeys.COUNTS_SUFFIX}", counts_files[0])
+            found = re.match(rf"(.*)_{CosmxProteomicsKeys.COUNTS_SUFFIX}", counts_files[0])
             if found:
                 dataset_id = found.group(1)
     if dataset_id is None:
         raise ValueError("Could not infer `dataset_id` from the name of the counts file. Please specify it manually.")
 
     # check for file existence
-    counts_file = path / f"{dataset_id}_{CosmxKeys.COUNTS_SUFFIX}"
+    counts_file = path / f"{dataset_id}_{CosmxProteomicsKeys.COUNTS_SUFFIX}"
     if not counts_file.exists():
         raise FileNotFoundError(f"Counts file not found: {counts_file}.")
-    meta_file = path / f"{dataset_id}_{CosmxKeys.METADATA_SUFFIX}"
+    meta_file = path / f"{dataset_id}_{CosmxProteomicsKeys.METADATA_SUFFIX}"
     if not meta_file.exists():
         raise FileNotFoundError(f"Metadata file not found: {meta_file}.")
-    fov_file = path / f"{dataset_id}_{CosmxKeys.FOV_SUFFIX}"
+    fov_file = path / f"{dataset_id}_{CosmxProteomicsKeys.FOV_SUFFIX}"
     if not fov_file.exists():
         raise FileNotFoundError(f"Found field of view file: {fov_file}.")
-    images_dir = path / CosmxKeys.IMAGES_DIR
+    images_dir = path / CosmxProteomicsKeys.IMAGES_DIR
     if not images_dir.exists():
         raise FileNotFoundError(f"Images directory not found: {images_dir}.")
-    labels_dir = path / CosmxKeys.LABELS_DIR
+    labels_dir = path / CosmxProteomicsKeys.LABELS_DIR
     if not labels_dir.exists():
         raise FileNotFoundError(f"Labels directory not found: {labels_dir}.")
 
-    counts = pd.read_csv(path / counts_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
-    counts.index = counts.index.astype(str).str.cat(counts.pop(CosmxKeys.FOV).astype(str).values, sep="_")
+    counts = pd.read_csv(path / counts_file, header=0, index_col=CosmxProteomicsKeys.INSTANCE_KEY)
+    counts.index = counts.index.astype(str).str.cat(counts.pop(CosmxProteomicsKeys.FOV).astype(str).values, sep="_")
 
-    obs = pd.read_csv(path / meta_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
-    obs[CosmxKeys.FOV] = pd.Categorical(obs[CosmxKeys.FOV].astype(str))
-    obs[CosmxKeys.REGION_KEY] = pd.Categorical(obs[CosmxKeys.FOV].astype(str).apply(lambda s: s + "_labels"))
-    obs[CosmxKeys.INSTANCE_KEY] = obs.index.astype(np.int64)
+    obs = pd.read_csv(path / meta_file, header=0, index_col=CosmxProteomicsKeys.INSTANCE_KEY)
+    obs[CosmxProteomicsKeys.FOV] = pd.Categorical(obs[CosmxProteomicsKeys.FOV].astype(str))
+    obs[CosmxProteomicsKeys.REGION_KEY] = pd.Categorical(obs[CosmxProteomicsKeys.FOV].astype(str).apply(lambda s: s + "_labels"))
+    obs[CosmxProteomicsKeys.INSTANCE_KEY] = obs.index.astype(np.int64)
     obs.rename_axis(None, inplace=True)
-    obs.index = obs.index.astype(str).str.cat(obs[CosmxKeys.FOV].values, sep="_")
+    obs.index = obs.index.astype(str).str.cat(obs[CosmxProteomicsKeys.FOV].values, sep="_")
 
     common_index = obs.index.intersection(counts.index)
 
@@ -141,9 +141,9 @@ def cosmx_proteomics(
 
     table = TableModel.parse(
         adata,
-        region=list(set(adata.obs[CosmxKeys.REGION_KEY].astype(str).tolist())),
-        region_key=CosmxKeys.REGION_KEY.value,
-        instance_key=CosmxKeys.INSTANCE_KEY.value,
+        region=list(set(adata.obs[CosmxProteomicsKeys.REGION_KEY].astype(str).tolist())),
+        region_key=CosmxProteomicsKeys.REGION_KEY.value,
+        instance_key=CosmxProteomicsKeys.INSTANCE_KEY.value,
     )
 
     fovs_counts = list(map(str, adata.obs.fov.astype(int).unique()))
@@ -152,8 +152,8 @@ def cosmx_proteomics(
 
     for fov in fovs_counts:
         idx = table.obs.fov.astype(str) == fov
-        loc = table[idx, :].obs[[CosmxKeys.X_LOCAL_CELL, CosmxKeys.Y_LOCAL_CELL]].values
-        glob = table[idx, :].obs[[CosmxKeys.X_GLOBAL_CELL, CosmxKeys.Y_GLOBAL_CELL]].values
+        loc = table[idx, :].obs[[CosmxProteomicsKeys.X_LOCAL_CELL, CosmxProteomicsKeys.Y_LOCAL_CELL]].values
+        glob = table[idx, :].obs[[CosmxProteomicsKeys.X_GLOBAL_CELL, CosmxProteomicsKeys.Y_GLOBAL_CELL]].values
         out = estimate_transform(ttype="affine", src=loc, dst=glob)
         affine_transforms_to_global[fov] = Affine(
             # out.params, input_coordinate_system=input_cs, output_coordinate_system=output_cs
@@ -162,10 +162,10 @@ def cosmx_proteomics(
             output_axes=("x", "y"),
         )
 
-    table.obsm["global"] = table.obs[[CosmxKeys.X_GLOBAL_CELL, CosmxKeys.Y_GLOBAL_CELL]].to_numpy()
-    table.obsm["spatial"] = table.obs[[CosmxKeys.X_LOCAL_CELL, CosmxKeys.Y_LOCAL_CELL]].to_numpy()
+    table.obsm["global"] = table.obs[[CosmxProteomicsKeys.X_GLOBAL_CELL, CosmxProteomicsKeys.Y_GLOBAL_CELL]].to_numpy()
+    table.obsm["spatial"] = table.obs[[CosmxProteomicsKeys.X_LOCAL_CELL, CosmxProteomicsKeys.Y_LOCAL_CELL]].to_numpy()
     table.obs.drop(
-        columns=[CosmxKeys.X_LOCAL_CELL, CosmxKeys.Y_LOCAL_CELL, CosmxKeys.X_GLOBAL_CELL, CosmxKeys.Y_GLOBAL_CELL],
+        columns=[CosmxProteomicsKeys.X_LOCAL_CELL, CosmxProteomicsKeys.Y_LOCAL_CELL, CosmxProteomicsKeys.X_GLOBAL_CELL, CosmxProteomicsKeys.Y_GLOBAL_CELL],
         inplace=True,
     )
 
@@ -175,12 +175,12 @@ def cosmx_proteomics(
 
     # check if fovs are correct for images and labels
     fovs_images = []
-    for fname in os.listdir(path / CosmxKeys.IMAGES_DIR):
+    for fname in os.listdir(path / CosmxProteomicsKeys.IMAGES_DIR):
         if fname.endswith(file_extensions):
             fovs_images.append(str(int(pat.findall(fname)[0])))
 
     fovs_labels = []
-    for fname in os.listdir(path / CosmxKeys.LABELS_DIR):
+    for fname in os.listdir(path / CosmxProteomicsKeys.LABELS_DIR):
         if fname.endswith(file_extensions):
             fovs_labels.append(str(int(pat.findall(fname)[0])))
 
@@ -198,12 +198,12 @@ def cosmx_proteomics(
 
     # read images
     images = {}
-    for fname in os.listdir(path / CosmxKeys.IMAGES_DIR):
+    for fname in os.listdir(path / CosmxProteomicsKeys.IMAGES_DIR):
         if fname.endswith(file_extensions):
             fov = str(int(pat.findall(fname)[0]))
             if fov in fovs_counts:
                 aff = affine_transforms_to_global[fov]
-                num_dims = imread(path / CosmxKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
+                num_dims = imread(path / CosmxProteomicsKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
                 multi_channel_img = np.zeroes((num_channels, num_dims[0], num_dims[1]))
                 for i, channel in enumerate(channel_mapping):
                     img_path_template = f"**/{fov}/*/ProteinImages/*{channel}"
@@ -234,7 +234,7 @@ def cosmx_proteomics(
             fov = str(int(pat.findall(fname)[0]))
             if fov in fovs_counts:
                 aff = affine_transforms_to_global[fov]
-                num_dims = imread(path / CosmxKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
+                num_dims = imread(path / CosmxProteomicsKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
                 multi_channel_mask = np.zeroes((num_channels, num_dims[0], num_dims[1]))
                 for i, channel in enumerate(channel_mapping):
                     label_path_template = f"**/{fov}/*/ProteinMasks/*{channel}"
