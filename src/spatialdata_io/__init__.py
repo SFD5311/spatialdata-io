@@ -23,6 +23,7 @@ from spatialdata_io.readers.xenium import (
 _readers_technologies = [
     "codex",
     "cosmx",
+    "cosmx_proteomics",
     "curio",
     "dbit",
     "macsima",
