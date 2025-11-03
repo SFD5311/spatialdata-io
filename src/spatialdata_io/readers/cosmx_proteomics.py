@@ -37,14 +37,6 @@ def find_files(directory: Path, pattern: str) -> Iterable[Path]:
             if filepath.match(pattern):
                 yield filepath
 
-def find_files_full_path(directory: Path, pattern: str) -> Iterable[Path]:
-    for dirpath_str, dirnames, filenames in os.walk(directory):
-        dirpath = Path(dirpath_str)
-        for filename in filenames:
-            filepath = dirpath / filename
-            if filepath.full_match(pattern):
-                yield filepath
-
 def find_directory(directory:str, pattern)->Path:
     for dirpath_str, dirnames, filenames in os.walk(directory):
         dirpath = Path(dirpath_str)
@@ -176,16 +168,10 @@ def cosmx_proteomics(
         inplace=True,
     )
 
-    # prepare to read images and labels
-    file_extensions = (".jpg", ".png", ".jpeg", ".tif", ".tiff")
-    pat = re.compile(r".*_F(\d+)")
-
     analysis_results_dir = list(find_directory(path, 'AnalysisResults'))[0]
     fovs_dirs = list(find_directory(analysis_results_dir, "FOV*"))
 
     fovs_dir_names = set([str(int(fov_dir.name[3:])) for fov_dir in fovs_dirs])
-    print(fovs_dir_names)
-    print(set(fovs_counts))
 
     fovs_diff = fovs_dir_names.difference(set(fovs_counts))
     if len(fovs_diff):
@@ -221,11 +207,11 @@ def cosmx_proteomics(
 
             for i, channel in enumerate(channel_mapping):
                 img_path_template = f"*{channel}*"
-                img_path = list(find_files_full_path(protein_image_dir, img_path_template))[0]
+                img_path = list(find_files(protein_image_dir, img_path_template))[0]
                 multi_channel_img[i] = imread(img_path, **imread_kwargs).squeeze()
 
                 label_path_template = f"*{channel}*"
-                label_path = list(find_files_full_path(mask_dir, label_path_template))
+                label_path = list(find_files(mask_dir, label_path_template))
                 multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
 
                 flipped_im = da.flip(multi_channel_img, axis=0)
