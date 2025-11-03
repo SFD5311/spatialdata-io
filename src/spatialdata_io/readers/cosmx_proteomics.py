@@ -132,6 +132,8 @@ def cosmx_proteomics(
     obs[CosmxProteomicsKeys.FOV] = pd.Categorical(obs[CosmxProteomicsKeys.FOV].astype(str))
     obs[CosmxProteomicsKeys.REGION_KEY] = pd.Categorical(obs[CosmxProteomicsKeys.FOV].astype(str).apply(lambda s: s + "_labels"))
     obs[CosmxProteomicsKeys.INSTANCE_KEY] = obs.index.astype(np.int64)
+    if CosmxProteomicsKeys.INSTANCE_KEY.lower() in obs.columns:
+        obs = obs.drop(CosmxProteomicsKeys.INSTANCE_KEY, axis=1, inplace=False)
     obs.rename_axis(None, inplace=True)
     obs.index = obs.index.astype(str).str.cat(obs[CosmxProteomicsKeys.FOV].values, sep="_")
 
