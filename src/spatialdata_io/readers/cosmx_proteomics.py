@@ -198,19 +198,22 @@ def cosmx_proteomics(
     channel_mapping = read_plex_text(path)
     num_channels = len(channel_mapping)
 
-    # read images
     images = {}
-    for fname in os.listdir(path / CosmxProteomicsKeys.IMAGES_DIR):
-        if fname.endswith(file_extensions):
-            fov = str(int(pat.findall(fname)[0]))
-            if fov in fovs_counts:
-                aff = affine_transforms_to_global[fov]
-                num_dims = imread(path / CosmxProteomicsKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
+    labels = {}
+
+
+    for fov_dir in fovs_dirs():
+        fov = str(int(pat.findall(fov_dir.name)[0]))
+        if fov in fovs_counts:
+            aff = affine_transforms_to_global[fov]
+            protein_image_dir = fov_dir / 'ProteinImages'
+            for fname in os.listdir(protein_image_dir):
+                num_dims = imread(fname, **imread_kwargs).squeeze().shape
                 multi_channel_img = np.zeroes((num_channels, num_dims[0], num_dims[1]))
                 for i, channel in enumerate(channel_mapping):
-                    img_path_template = f"**/{fov}/*/ProteinImages/*{channel}"
-                    img_path = find_files_full_path(path, img_path_template)
-                    multi_channel_img[i] = imread(img_path, **imread_kwargs).squeeze()
+                    img_path_template = f"*{channel}*"
+                    img_path = find_files_full_path(protein_image_dir, img_path_template)
+                    multi_channel_img[i] = imread(img_path).squeeze()
 
                 flipped_im = da.flip(multi_channel_img, axis=0)
                 parsed_im = Image2DModel.parse(
@@ -221,7 +224,7 @@ def cosmx_proteomics(
                         "global_only_image": aff,
                     },
                     dims=("c", "y", "x"),
-                    c_coords = list(channel_mapping.values()),
+                    c_coords=list(channel_mapping.values()),
                     rgb=None,
                     **image_models_kwargs,
                 )
@@ -229,36 +232,34 @@ def cosmx_proteomics(
             else:
                 logger.warning(f"FOV {fov} not found in counts file. Skipping image {fname}.")
 
-    # read labels
-    labels = {}
-    for fname in os.listdir(path / CosmxKeys.LABELS_DIR):
-        if fname.endswith(file_extensions):
-            fov = str(int(pat.findall(fname)[0]))
-            if fov in fovs_counts:
-                aff = affine_transforms_to_global[fov]
-                num_dims = imread(path / CosmxProteomicsKeys.IMAGES_DIR / fname, **imread_kwargs).squeeze().shape
-                multi_channel_mask = np.zeroes((num_channels, num_dims[0], num_dims[1]))
-                for i, channel in enumerate(channel_mapping):
-                    label_path_template = f"**/{fov}/*/ProteinMasks/*{channel}"
-                    label_path = find_files_full_path(path, label_path_template)
-                    multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
 
-                flipped_la = da.flip(multi_channel_mask, axis=0)
-                parsed_la = Labels2DModel.parse(
-                    flipped_la,
-                    transformations={
-                        fov: Identity(),
-                        "global": aff,
-                        "global_only_image": aff,
-                    },
-                    dims=("c", "y", "x"),
-                    c_coords = list(channel_mapping.values()),
-                    rgb=None,
-                    **image_models_kwargs,
-                )
-                labels[f"{fov}_labels"] = parsed_la
-            else:
-                logger.warning(f"FOV {fov} not found in counts file. Skipping labels {fname}.")
+            mask_dir = fov_dir / 'ProteinMasks'
+            for fname in os.listdir(mask_dir):
+                if fname.endswith(file_extensions):
+                    num_dims = imread(fname,
+                                      **imread_kwargs).squeeze().shape
+                    multi_channel_mask = np.zeroes((num_channels, num_dims[0], num_dims[1]))
+                    for i, channel in enumerate(channel_mapping):
+                        label_path_template = f"*{channel}*"
+                        label_path = find_files_full_path(mask_dir, label_path_template)
+                        multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
+
+                    flipped_la = da.flip(multi_channel_mask, axis=0)
+                    parsed_la = Labels2DModel.parse(
+                        flipped_la,
+                        transformations={
+                            fov: Identity(),
+                            "global": aff,
+                            "global_only_image": aff,
+                        },
+                        dims=("c", "y", "x"),
+                        c_coords=list(channel_mapping.values()),
+                        rgb=None,
+                        **image_models_kwargs,
+                    )
+                    labels[f"{fov}_labels"] = parsed_la
+                else:
+                    logger.warning(f"FOV {fov} not found in counts file. Skipping labels {fname}.")
 
 
     # TODO: what to do with fov file?
