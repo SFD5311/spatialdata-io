@@ -210,11 +210,11 @@ def cosmx_proteomics(
             mask_dir = fov_dir / 'ProteinMasks'
 
 
-            image_file = list(find_files(protein_image_dir, '*.tif'))[0]
+            image_file = list(find_files(protein_image_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
             num_dims = imread(image_file, **imread_kwargs).squeeze().shape
             multi_channel_img = np.zeros((num_channels, num_dims[0], num_dims[1]))
 
-            mask_file = list(find_files(mask_dir, '*.tif'))[0]
+            mask_file = list(find_files(mask_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
             num_dims = imread(mask_file,
                               **imread_kwargs).squeeze().shape
             multi_channel_mask = np.zeros((num_channels, num_dims[0], num_dims[1]))
@@ -259,7 +259,7 @@ def cosmx_proteomics(
                 labels[f"{fov}_labels"] = parsed_la
 
             else:
-                logger.warning(f"FOV {fov} not found in counts file. Skipping image {fname}.")
+                logger.warning(f"FOV {fov} not found in counts file. Skipping image {fov}.")
 
 
     # TODO: what to do with fov file?
