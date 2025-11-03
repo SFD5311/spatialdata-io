@@ -211,7 +211,7 @@ def cosmx_proteomics(
                 multi_channel_img[i] = imread(img_path, **imread_kwargs).squeeze()
 
                 label_path_template = f"*{channel}*"
-                label_path = list(find_files(mask_dir, label_path_template))
+                label_path = list(find_files(mask_dir, label_path_template))[0]
                 multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
 
                 flipped_im = da.flip(multi_channel_img, axis=0)
