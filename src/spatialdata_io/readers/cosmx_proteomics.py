@@ -184,6 +184,8 @@ def cosmx_proteomics(
     fovs_dirs = list(find_directory(analysis_results_dir, "FOV*"))
 
     fovs_dir_names = set([fov_dir.name for fov_dir in fovs_dirs])
+    print(fovs_dir_names)
+    print(set(fovs_counts))
 
     fovs_diff = fovs_dir_names.difference(set(fovs_counts))
     if len(fovs_diff):
