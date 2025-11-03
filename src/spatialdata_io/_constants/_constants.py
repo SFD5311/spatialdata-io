@@ -63,10 +63,10 @@ class CosmxProteomicsKeys(ModeEnum):
     """Keys for *Nanostring Cosmx* formatted dataset."""
 
     # files and directories
-    COUNTS_SUFFIX = "*exprMat_file.csv*"
+    COUNTS_SUFFIX = "exprMat_file.csv"
     TRANSCRIPTS_SUFFIX = "tx_file.csv"
-    METADATA_SUFFIX = "metadata_file.csv*"
-    FOV_SUFFIX = "fov_positions_file.csv*"
+    METADATA_SUFFIX = "metadata_file.csv"
+    FOV_SUFFIX = "fov_positions_file.csv"
     ANALYSIS_DIR = "AnalysisResults"
     IMAGES_DIR = "ProteinImages"
     LABELS_DIR = "ProteinMasks"
