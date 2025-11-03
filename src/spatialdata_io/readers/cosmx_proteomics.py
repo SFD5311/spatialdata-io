@@ -214,7 +214,7 @@ def cosmx_proteomics(
                 for i, channel in enumerate(channel_mapping):
                     img_path_template = f"*{channel}*"
                     img_path = find_files_full_path(protein_image_dir, img_path_template)
-                    multi_channel_img[i] = imread(img_path).squeeze()
+                    multi_channel_img[i] = imread(img_path, **imread_kwargs).squeeze()
 
                 flipped_im = da.flip(multi_channel_img, axis=0)
                 parsed_im = Image2DModel.parse(
