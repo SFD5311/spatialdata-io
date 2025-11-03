@@ -208,7 +208,8 @@ def cosmx_proteomics(
             aff = affine_transforms_to_global[fov]
             protein_image_dir = fov_dir / 'ProteinImages'
             for fname in os.listdir(protein_image_dir):
-                num_dims = imread(fname, **imread_kwargs).squeeze().shape
+                image_file = protein_image_dir / fname
+                num_dims = imread(image_file, **imread_kwargs).squeeze().shape
                 multi_channel_img = np.zeroes((num_channels, num_dims[0], num_dims[1]))
                 for i, channel in enumerate(channel_mapping):
                     img_path_template = f"*{channel}*"
@@ -236,7 +237,8 @@ def cosmx_proteomics(
             mask_dir = fov_dir / 'ProteinMasks'
             for fname in os.listdir(mask_dir):
                 if fname.endswith(file_extensions):
-                    num_dims = imread(fname,
+                    mask_file = mask_dir / fname
+                    num_dims = imread(mask_file,
                                       **imread_kwargs).squeeze().shape
                     multi_channel_mask = np.zeroes((num_channels, num_dims[0], num_dims[1]))
                     for i, channel in enumerate(channel_mapping):
