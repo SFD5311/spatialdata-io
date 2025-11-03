@@ -94,8 +94,10 @@ def cosmx_proteomics(
     path = Path(path)
 
     # tries to infer dataset_id from the name of the counts file
+
     if dataset_id is None:
-        counts_files = [f for f in os.listdir(path) if str(f).endswith(CosmxProteomicsKeys.COUNTS_SUFFIX)]
+        counts_files = find_files(path, CosmxProteomicsKeys.COUNTS_SUFFIX)
+        print(len(counts_files))
         if len(counts_files) == 1:
             found = re.match(rf"(.*)_{CosmxProteomicsKeys.COUNTS_SUFFIX}", counts_files[0])
             if found:
