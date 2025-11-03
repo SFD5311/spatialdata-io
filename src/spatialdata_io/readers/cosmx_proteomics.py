@@ -54,7 +54,7 @@ def find_directory(directory:str, pattern)->Path:
                 yield dir
 def read_plex_text(dir_name:str)->pd.DataFrame:
     plex_text_pattern = "plex*.txt"
-    plex_text_file = find_files(Path(dir_name), plex_text_pattern)
+    plex_text_file = list(find_files(Path(dir_name), plex_text_pattern))[0]
     plex_text_df = pd.read_csv(plex_text_file)
     plex_text_mapping = {plex_text_df.at[i, 'ProbeID']:plex_text_df.at[i, 'DisplayName'] for i in plex_text_df.index}
     return plex_text_mapping
@@ -183,7 +183,7 @@ def cosmx_proteomics(
     analysis_results_dir = list(find_directory(path, 'AnalysisResults'))[0]
     fovs_dirs = list(find_directory(analysis_results_dir, "FOV*"))
 
-    fovs_dir_names = set([fov_dir.name for fov_dir in fovs_dirs])
+    fovs_dir_names = set([str(int(fov_dir.name[3:])) for fov_dir in fovs_dirs])
     print(fovs_dir_names)
     print(set(fovs_counts))
 
