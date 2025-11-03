@@ -96,7 +96,7 @@ def cosmx_proteomics(
     # tries to infer dataset_id from the name of the counts file
 
     if dataset_id is None:
-        counts_files = find_files(path, f"*{CosmxProteomicsKeys.COUNTS_SUFFIX}*")
+        counts_files = list(find_files(path, f"*{CosmxProteomicsKeys.COUNTS_SUFFIX}*"))
         if len(counts_files) == 1:
             found = re.match(rf"(.*)_{CosmxProteomicsKeys.COUNTS_SUFFIX}*", counts_files[0].name)
             if found:
@@ -105,13 +105,13 @@ def cosmx_proteomics(
         raise ValueError("Could not infer `dataset_id` from the name of the counts file. Please specify it manually.")
 
     # check for file existence
-    counts_file = find_files(path, f"*{CosmxProteomicsKeys.COUNTS_SUFFIX}*")[0]
+    counts_file = list(find_files(path, f"*{CosmxProteomicsKeys.COUNTS_SUFFIX}*"))[0]
     if not counts_file.exists():
         raise FileNotFoundError(f"Counts file not found: {counts_file}.")
-    meta_file = find_files(path, f"{dataset_id}_{CosmxProteomicsKeys.METADATA_SUFFIX}*")
+    meta_file = list(find_files(path, f"{dataset_id}_{CosmxProteomicsKeys.METADATA_SUFFIX}*"))[0]
     if not meta_file.exists():
         raise FileNotFoundError(f"Metadata file not found: {meta_file}.")
-    fov_file = find_files(path, f"{dataset_id}_{CosmxProteomicsKeys.FOV_SUFFIX}*")
+    fov_file = list(find_files(path, f"{dataset_id}_{CosmxProteomicsKeys.FOV_SUFFIX}*"))[0]
     if not fov_file.exists():
         raise FileNotFoundError(f"Found field of view file: {fov_file}.")
     images_dir = path / CosmxProteomicsKeys.IMAGES_DIR
