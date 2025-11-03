@@ -203,7 +203,7 @@ def cosmx_proteomics(
 
 
     for fov_dir in fovs_dirs:
-        fov = str(int(pat.findall(fov_dir.name)[0]))
+        fov = str(int(fov_dir.name[3:]))
         if fov in fovs_counts:
             aff = affine_transforms_to_global[fov]
             protein_image_dir = fov_dir / 'ProteinImages'
