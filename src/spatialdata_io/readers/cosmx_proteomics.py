@@ -210,7 +210,7 @@ def cosmx_proteomics(
             for fname in os.listdir(protein_image_dir):
                 image_file = protein_image_dir / fname
                 num_dims = imread(image_file, **imread_kwargs).squeeze().shape
-                multi_channel_img = np.zeroes((num_channels, num_dims[0], num_dims[1]))
+                multi_channel_img = np.zeros((num_channels, num_dims[0], num_dims[1]))
                 for i, channel in enumerate(channel_mapping):
                     img_path_template = f"*{channel}*"
                     img_path = find_files_full_path(protein_image_dir, img_path_template)
@@ -240,7 +240,7 @@ def cosmx_proteomics(
                     mask_file = mask_dir / fname
                     num_dims = imread(mask_file,
                                       **imread_kwargs).squeeze().shape
-                    multi_channel_mask = np.zeroes((num_channels, num_dims[0], num_dims[1]))
+                    multi_channel_mask = np.zeros((num_channels, num_dims[0], num_dims[1]))
                     for i, channel in enumerate(channel_mapping):
                         label_path_template = f"*{channel}*"
                         label_path = find_files_full_path(mask_dir, label_path_template)
