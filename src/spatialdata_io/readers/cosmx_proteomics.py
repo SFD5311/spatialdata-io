@@ -49,7 +49,7 @@ def find_directory(directory:str, pattern)->Path:
     for dirpath_str, dirnames, filenames in os.walk(directory):
         dirpath = Path(dirpath_str)
         for dirname in dirnames:
-            dir = dirpath / dirpath
+            dir = dirpath / dirname
             if dir.match(pattern):
                 yield dir
 def read_plex_text(dir_name:str)->pd.DataFrame:
@@ -118,10 +118,10 @@ def cosmx_proteomics(
     fov_file = list(find_files(path, f"{dataset_id}_{CosmxProteomicsKeys.FOV_SUFFIX}*"))[0]
     if not fov_file.exists():
         raise FileNotFoundError(f"Found field of view file: {fov_file}.")
-    images_dir = list(find_directory(path, CosmxProteomicsKeys.IMAGES_DIR))[0]
+    images_dir = list(find_directory(path, f"{CosmxProteomicsKeys.IMAGES_DIR}"))[0]
     if not images_dir.exists():
         raise FileNotFoundError(f"Images directory not found: {images_dir}.")
-    labels_dir = list(find_directory(path, CosmxProteomicsKeys.LABELS_DIR))[0]
+    labels_dir = list(find_directory(path, f"{CosmxProteomicsKeys.LABELS_DIR}"))[0]
     if not labels_dir.exists():
         raise FileNotFoundError(f"Labels directory not found: {labels_dir}.")
 
