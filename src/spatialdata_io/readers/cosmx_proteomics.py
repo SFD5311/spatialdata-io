@@ -133,7 +133,7 @@ def cosmx_proteomics(
     obs[CosmxProteomicsKeys.REGION_KEY] = pd.Categorical(obs[CosmxProteomicsKeys.FOV].astype(str).apply(lambda s: s + "_labels"))
     obs[CosmxProteomicsKeys.INSTANCE_KEY] = obs.index.astype(np.int64)
     if CosmxProteomicsKeys.INSTANCE_KEY.lower() in obs.columns:
-        obs = obs.drop(CosmxProteomicsKeys.INSTANCE_KEY, axis=1, inplace=False)
+        obs = obs.drop(CosmxProteomicsKeys.INSTANCE_KEY.lower(), axis=1, inplace=False)
     obs.rename_axis(None, inplace=True)
     obs.index = obs.index.astype(str).str.cat(obs[CosmxProteomicsKeys.FOV].values, sep="_")
 
@@ -180,22 +180,15 @@ def cosmx_proteomics(
     file_extensions = (".jpg", ".png", ".jpeg", ".tif", ".tiff")
     pat = re.compile(r".*_F(\d+)")
 
-    # check if fovs are correct for images and labels
-    fovs_images = []
-    for fname in os.listdir(path / CosmxProteomicsKeys.IMAGES_DIR):
-        if fname.endswith(file_extensions):
-            fovs_images.append(str(int(pat.findall(fname)[0])))
+    analysis_results_dir = list(find_directory(path, 'AnalysisResults'))[0]
+    fovs_dirs = list(find_directory(analysis_results_dir, "FOV*"))
 
-    fovs_labels = []
-    for fname in os.listdir(path / CosmxProteomicsKeys.LABELS_DIR):
-        if fname.endswith(file_extensions):
-            fovs_labels.append(str(int(pat.findall(fname)[0])))
+    fovs_dir_names = set([fov_dir.name for fov_dir in fovs_dirs])
 
-    fovs_images_and_labels = set(fovs_images).intersection(set(fovs_labels))
-    fovs_diff = fovs_images_and_labels.difference(set(fovs_counts))
+    fovs_diff = fovs_dir_names.difference(set(fovs_counts))
     if len(fovs_diff):
         logger.warning(
-            f"Found images and labels for {len(fovs_images)} FOVs, but only {len(fovs_counts)} FOVs in the counts file.\n"
+            f"Found images and labels for {len(fovs_dir_names)} FOVs, but only {len(fovs_counts)} FOVs in the counts file.\n"
             + f"The following FOVs are missing: {fovs_diff} \n"
             + "... will use only fovs in Table."
         )
