@@ -22,6 +22,10 @@ from spatialdata.transformations.transformations import Affine, Identity
 from spatialdata_io._constants._constants import CosmxKeys, CosmxProteomicsKeys
 from spatialdata_io._docs import inject_docs
 
+from math import ceil, log2
+
+desired_pixel_size_for_pyramid = 250
+
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
@@ -195,15 +199,19 @@ def cosmx_proteomics(
             protein_image_dir = fov_dir / 'ProteinImages'
             mask_dir = fov_dir / 'ProteinMasks'
 
-
             image_file = list(find_files(protein_image_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
-            num_dims = imread(image_file, **imread_kwargs).squeeze().shape
+            image_data_squeezed = imread(image_file, **imread_kwargs).squeeze()
+            num_dims = image_data_squeezed.shape
             multi_channel_img = np.zeros((num_channels, num_dims[0], num_dims[1]))
 
             mask_file = list(find_files(mask_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
             num_dims = imread(mask_file,
                               **imread_kwargs).squeeze().shape
             multi_channel_mask = np.zeros((num_channels, num_dims[0], num_dims[1]))
+
+            image_scale_factors = (2,) * ceil(
+                log2(max(image_data_squeezed.shape[1:]) / desired_pixel_size_for_pyramid)
+            )
 
             for i, channel in enumerate(channel_mapping):
                 img_path_template = f"*{channel}*"
@@ -225,6 +233,7 @@ def cosmx_proteomics(
                 dims=("c", "y", "x"),
                 c_coords=list(channel_mapping.values()),
                 rgb=None,
+                scale_factors=image_scale_factors,
                 **image_models_kwargs,
             )
             images[f"{fov}_image"] = parsed_im
@@ -239,6 +248,7 @@ def cosmx_proteomics(
                 },
                 dims=("y", "x"),
                 rgb=None,
+                scale_factors=image_scale_factors,
                 **image_models_kwargs,
             )
             labels[f"{fov}_labels"] = parsed_la
