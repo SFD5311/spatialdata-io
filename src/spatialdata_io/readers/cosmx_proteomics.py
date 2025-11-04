@@ -214,33 +214,33 @@ def cosmx_proteomics(
                 label_path = list(find_files(mask_dir, label_path_template))[0]
                 multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
 
-                flipped_im = da.flip(multi_channel_img, axis=0)
-                parsed_im = Image2DModel.parse(
-                    flipped_im,
-                    transformations={
-                        fov: Identity(),
-                        "global": aff,
-                        "global_only_image": aff,
-                    },
-                    dims=("c", "y", "x"),
-                    c_coords=list(channel_mapping.values()),
-                    rgb=None,
-                    **image_models_kwargs,
-                )
-                images[f"{fov}_image"] = parsed_im
+            flipped_im = da.flip(multi_channel_img, axis=0)
+            parsed_im = Image2DModel.parse(
+                flipped_im,
+                transformations={
+                    fov: Identity(),
+                    "global": aff,
+                    "global_only_image": aff,
+                },
+                dims=("c", "y", "x"),
+                c_coords=list(channel_mapping.values()),
+                rgb=None,
+                **image_models_kwargs,
+            )
+            images[f"{fov}_image"] = parsed_im
 
-                flipped_la = da.flip(multi_channel_mask, axis=0)
-                parsed_la = Labels2DModel.parse(
-                    flipped_la,
-                    transformations={
-                        fov: Identity(),
-                        "global": aff,
-                        "global_only_image": aff,
-                    },
-                    dims=("c", "y", "x"),
-                    rgb=None,
-                    **image_models_kwargs,
-                )
+            flipped_la = da.flip(multi_channel_mask[0], axis=0)
+            parsed_la = Labels2DModel.parse(
+                flipped_la,
+                transformations={
+                    fov: Identity(),
+                    "global": aff,
+                    "global_only_image": aff,
+                },
+                dims=("y", "x"),
+                rgb=None,
+                **image_models_kwargs,
+            )
                 labels[f"{fov}_labels"] = parsed_la
 
             else:
