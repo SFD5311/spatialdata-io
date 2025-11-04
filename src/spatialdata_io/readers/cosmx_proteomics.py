@@ -241,10 +241,10 @@ def cosmx_proteomics(
                 rgb=None,
                 **image_models_kwargs,
             )
-                labels[f"{fov}_labels"] = parsed_la
+            labels[f"{fov}_labels"] = parsed_la
 
-            else:
-                logger.warning(f"FOV {fov} not found in counts file. Skipping image {fov}.")
+        else:
+            logger.warning(f"FOV {fov} not found in counts file. Skipping image {fov}.")
 
 
     # TODO: what to do with fov file?
