@@ -238,7 +238,6 @@ def cosmx_proteomics(
                         "global_only_image": aff,
                     },
                     dims=("c", "y", "x"),
-                    c_coords=list(channel_mapping.values()),
                     rgb=None,
                     **image_models_kwargs,
                 )
