@@ -173,6 +173,7 @@ def cosmx_proteomics(
     )
 
     analysis_results_dir = list(find_directory(path, 'AnalysisResults'))[0]
+    cell_stats_dir = list(find_directory(path, 'CellStatsDir'))[0]
     fovs_dirs = list(find_directory(analysis_results_dir, "FOV*"))
 
     fovs_dir_names = set([str(int(fov_dir.name[3:])) for fov_dir in fovs_dirs])
@@ -197,17 +198,15 @@ def cosmx_proteomics(
         if fov in fovs_counts:
             aff = affine_transforms_to_global[fov]
             protein_image_dir = fov_dir / 'ProteinImages'
-            mask_dir = fov_dir / 'ProteinMasks'
+            mask_dir = cell_stats_dir / fov_dir.name
 
             image_file = list(find_files(protein_image_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
             image_data_squeezed = imread(image_file, **imread_kwargs).squeeze()
             num_dims = image_data_squeezed.shape
             multi_channel_img = np.zeros((num_channels, num_dims[0], num_dims[1]))
 
-            mask_file = list(find_files(mask_dir, f'*{list(channel_mapping.keys())[0]}*'))[0]
-            num_dims = imread(mask_file,
-                              **imread_kwargs).squeeze().shape
-            multi_channel_mask = np.zeros((num_channels, num_dims[0], num_dims[1]))
+            mask_file = list(find_files(mask_dir, f'*CellLabels*'))[0]
+            mask = imread(mask_file, **imread_kwargs).squeeze()
 
             image_scale_factors = (2,) * ceil(
                 log2(max(image_data_squeezed.shape[1:]) / desired_pixel_size_for_pyramid)
@@ -217,10 +216,6 @@ def cosmx_proteomics(
                 img_path_template = f"*{channel}*"
                 img_path = list(find_files(protein_image_dir, img_path_template))[0]
                 multi_channel_img[i] = imread(img_path, **imread_kwargs).squeeze()
-
-                label_path_template = f"*{channel}*"
-                label_path = list(find_files(mask_dir, label_path_template))[0]
-                multi_channel_mask[i] = imread(label_path, **imread_kwargs).squeeze()
 
             flipped_im = da.flip(multi_channel_img, axis=0)
             parsed_im = Image2DModel.parse(
@@ -238,7 +233,7 @@ def cosmx_proteomics(
             )
             images[f"{fov}_image"] = parsed_im
 
-            flipped_la = da.flip(multi_channel_mask[0], axis=0)
+            flipped_la = da.flip(mask, axis=0)
             parsed_la = Labels2DModel.parse(
                 flipped_la,
                 transformations={
