@@ -192,6 +192,7 @@ def cosmx_proteomics(
     images = {}
     labels = {}
 
+    fovs_counts = {1, 2, 3, 4, 5}
 
     for fov_dir in fovs_dirs:
         fov = str(int(fov_dir.name[3:]))
