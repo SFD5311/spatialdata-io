@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
+from anndata import AnnData
 from anndata.io import read_text
 from h5py import File
 from ome_types import from_tiff
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from anndata import AnnData
+    from spatialdata import SpatialData
 
 PathLike = os.PathLike | str  # type:ignore[type-arg]
 
@@ -106,6 +108,15 @@ def parse_channels(path: Path) -> list[str]:
     logger.debug(channels)
     names = [c.name for c in channels if c.name is not None]
     return names
+
+
+def _set_reader_metadata(sdata: SpatialData, reader: str) -> SpatialData:
+    """Set spatialdata-io provenance metadata on a SpatialData object."""
+    from spatialdata_io import __version__
+
+    sdata.attrs["spatialdata_io_software_version"] = __version__
+    sdata.attrs["spatialdata_io_reader"] = reader
+    return sdata
 
 
 def parse_physical_size(path: Path | None = None, ome_pixels: Pixels | None = None) -> float:
