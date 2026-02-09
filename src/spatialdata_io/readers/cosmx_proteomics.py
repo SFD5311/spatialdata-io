@@ -234,9 +234,9 @@ def cosmx_proteomics(
             )
             images[f"{fov}_image"] = parsed_im
 
-            flipped_la = da.flip(mask, axis=0)
+#            flipped_la = da.flip(mask, axis=0)
             parsed_la = Labels2DModel.parse(
-                flipped_la,
+                mask,
                 transformations={
                     fov: Identity(),
                     "global": aff,
