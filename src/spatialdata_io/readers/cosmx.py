@@ -70,7 +70,7 @@ def cosmx(
     :class:`spatialdata.SpatialData`
     """
     path = Path(path)
-
+    print(path)
     # tries to infer dataset_id from the name of the counts file
     if dataset_id is None:
         counts_files = [f for f in os.listdir(path) if str(f).endswith(CosmxKeys.COUNTS_SUFFIX)]
@@ -83,6 +83,7 @@ def cosmx(
 
     # check for file existence
     counts_file = path / f"{dataset_id}_{CosmxKeys.COUNTS_SUFFIX}"
+    print(counts_file)
     if not counts_file.exists():
         raise FileNotFoundError(f"Counts file not found: {counts_file}.")
     if transcripts:
@@ -104,7 +105,16 @@ def cosmx(
     if not labels_dir.exists():
         raise FileNotFoundError(f"Labels directory not found: {labels_dir}.")
 
-    counts = pd.read_csv(path / counts_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
+    print(path)
+    print(path.exists())
+    print(counts_file)
+    print(counts_file.exists())
+    print(path / counts_file)
+    print((path / counts_file).exists())
+    try:
+        counts = pd.read_csv(path / counts_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
+    except:
+        counts = pd.read_csv(counts_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
     counts.index = counts.index.astype(str).str.cat(counts.pop(CosmxKeys.FOV).astype(str).values, sep="_")
 
     obs = pd.read_csv(path / meta_file, header=0, index_col=CosmxKeys.INSTANCE_KEY)
